@@ -1,0 +1,52 @@
+import java.io.*;
+import java.util.*;
+
+public class TextFileCompressor {
+    public static void main(String[] args) throws IOException {
+        // Имя исходного файла
+        String inputFileName = "example.txt";
+        // Имя файла назначения после сжатия
+        String outputFileName = "compressed.txt";
+
+        // Чтение исходного файла и удаление дублирующихся строк
+        Map<String, Integer> lineCounts = readAndRemoveDuplicates(inputFileName);
+
+        // Запись сжатого файла
+        writeCompressedFile(outputFileName, lineCounts);
+
+        System.out.println("Файл " + inputFileName + " был успешно сжат и записан в " + outputFileName);
+    }
+
+    private static Map<String, Integer> readAndRemoveDuplicates(String inputFileName) throws IOException {
+        // Чтение исходного файла построчно
+        Map<String, Integer> lineCounts = new HashMap<>();
+        try (BufferedReader reader = new BufferedReader(new FileReader(inputFileName))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                // Проверка на дублирование
+                if (!lineCounts.containsKey(line)) {
+                    lineCounts.put(line, 1);
+                } else {
+                    lineCounts.put(line, lineCounts.get(line) + 1);
+                }
+            }
+        }
+
+        // Подсчет количества удаленных дублирующихся строк
+        int deletedLinesCount = lineCounts.values().stream().filter(count -> count > 1).count();
+        System.out.println("Количество удаленных дублирующихся строк: " + deletedLinesCount);
+
+        return lineCounts;
+    }
+
+    private static void writeCompressedFile(String outputFileName, Map<String, Integer> lineCounts) throws IOException {
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(outputFileName))) {
+            // Запись уникальных строк в сжатый файл
+            for (Map.Entry<String, Integer> entry : lineCounts.entrySet()) {
+                for (int i = 0; i < entry.getValue(); i++) {
+                    writer.write(entry.getKey() + System.getProperty("line.separator"));
+                }
+            }
+        }
+    }
+}
